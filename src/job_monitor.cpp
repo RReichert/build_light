@@ -116,19 +116,24 @@ void JobMonitor::processRequest()
 		QJsonDocument document = QJsonDocument::fromJson(m_request->readAll());
 		QJsonArray jobs        = document.object()["jobs"].toArray();
 
+		int job_index = -1;
 		QStringList job_names;
 
-		QJsonArray::iterator itr = std::find_if(jobs.begin(), jobs.end(), [this, &job_names](const QJsonValueRef& job)
+		for (int i=0 ; i<jobs.size() ; ++i)
 		{
-			QString job_name = job.toObject()["name"].toString();
+			QString job_name = jobs[i].toObject()["name"].toString();
 			job_names << job_name;
 
-			return !QString::compare(job_name, m_job_name);
-		});
+			if (!QString::compare(job_name, m_job_name))
+			{
+				job_index = i;
+				break;
+			}
+		};
 
-		if (itr != jobs.end())
+		if (job_index > 0)
 		{
-			QJsonObject last_build = itr->toObject()["lastBuild"].toObject();
+			QJsonObject last_build = jobs[job_index].toObject()["lastBuild"].toObject();
 
 			bool building  = last_build["building"].toBool();
 			QString result = last_build["result"].toString();
