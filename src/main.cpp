@@ -73,9 +73,9 @@ int main(int argc, char* argv[])
 	}
 
 	// initialize IO pins
-	GPIO green  (parser.value("green_pin").toInt(),  GPIO::Direction::IN);
-	GPIO yellow (parser.value("yellow_pin").toInt(), GPIO::Direction::IN);
-	GPIO red    (parser.value("red_pin").toInt(),    GPIO::Direction::IN);
+	GPIO green  (parser.value("green_pin").toInt(),  GPIO::Direction::OUT);
+	GPIO yellow (parser.value("yellow_pin").toInt(), GPIO::Direction::OUT);
+	GPIO red    (parser.value("red_pin").toInt(),    GPIO::Direction::OUT);
 
 	GPIO* lights[] = {&green, &yellow, &red};
 
