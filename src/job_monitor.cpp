@@ -131,7 +131,7 @@ void JobMonitor::processRequest()
 			}
 		};
 
-		if (job_index > 0)
+		if (job_index >= 0)
 		{
 			QJsonObject last_build = jobs[job_index].toObject()["lastBuild"].toObject();
 
