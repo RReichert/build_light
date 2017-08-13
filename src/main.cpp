@@ -1,9 +1,16 @@
 #include "gpio.h"
 #include "job_monitor.h"
 
+#include <csignal>
 #include <iostream>
+#include <sys/socket.h>
+#include <unistd.h>
+
 #include <QCommandLineParser>
 #include <QCoreApplication>
+#include <QSocketNotifier>
+
+static int signal_sockets[2];
 
 void info(const QString& message)
 {
@@ -21,12 +28,26 @@ void failure(const QString& message)
 	exit(EXIT_FAILURE);
 }
 
+void terminateSignalHandler(int)
+{
+	char a = 0;
+	write(signal_sockets[0], &a, sizeof(a));
+}
+
 int main(int argc, char* argv[])
 {
 	// setup application
 	QCoreApplication application(argc, argv);
-	QCoreApplication::setApplicationName("Build Light");
-	QCoreApplication::setApplicationVersion("1.0");
+	application.setApplicationName("Build Light");
+	application.setApplicationVersion("1.0");
+
+	// setup signal handlers
+	socketpair(AF_UNIX, SOCK_STREAM, 0, signal_sockets);
+
+	QSocketNotifier socket_notifier(signal_sockets[1], QSocketNotifier::Read);
+	QObject::connect(&socket_notifier, &QSocketNotifier::activated, [&application](int){ application.quit(); });
+
+	std::signal(SIGINT, terminateSignalHandler);
 
 	// process command line arguments
 	QCommandLineParser parser;
@@ -144,5 +165,6 @@ int main(int argc, char* argv[])
 
 	job_monitor.start(std::chrono::seconds(1));
 
+	// startup application
 	return application.exec();
 }
